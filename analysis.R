@@ -117,9 +117,11 @@ if(read.from.raw == TRUE) {
   colnames(df)[area.col] = "mtDNA.area"
   df$Patcont[df$Patcont=="Black"] = "Control.2"
   df$Patcont[df$Patcont=="Turq"] = "Control.1"
-  df$Patcont[df$Patcont=="HeSt"] = "POLG.1"
-  df$Patcont[df$Patcont=="HenSto"] = "POLG.1"
-  df$Patcont[df$Patcont=="SavSty"] = "POLG.2"
+  df$Patcont[df$Patcont=="HeSt"] = "POLG1"
+  df$Patcont[df$Patcont=="HenSto"] = "POLG1"
+  df$Patcont[df$Patcont=="POLG1o"] = "POLG1"
+  df$Patcont[df$Patcont=="SavSty"] = "POLG2"
+  df$Patcont[df$Patcont=="TWNKw"] = "TWNK"
   sub = df[c("Run", "Patcont", "Condition", "mtDNA.area")]
   
   write.csv(sub, "reduced-data.csv")
@@ -129,7 +131,7 @@ if(read.from.raw == TRUE) {
 
 # summary plot
 ggplot(sub, aes(x=Patcont, y=mtDNA.area, fill=Condition)) + 
-  facet_wrap(~Run) + geom_boxplot()
+  facet_wrap(~Run) + geom_boxplot() + theme(axis.text.x = element_text(angle=90))
 
 # pull the different nucleoside combos
 cond.set = unique(sub$Condition)
@@ -162,9 +164,62 @@ for(i in 2:length(cond.set)) {
     this.fit = summary(this.lmer)
     res.df = rbind(res.df, data.frame(condition=cond.set[i], mean=this.fit$coefficients[2,1], sd=this.fit$coefficients[2,2]))
   }, error = function(err) { 
-   # res.df = rbind(res.df, data.frame(condition=cond.set[i], mean=NA, sd=NA))
+    # res.df = rbind(res.df, data.frame(condition=cond.set[i], mean=NA, sd=NA))
   })
 }
 
 # compute p-values based on normal distribution of estimator
 res.df$p = pnorm(0, mean=abs(res.df$mean), sd=res.df$sd)*2
+
+## Jo updated request: he key outputs that this run needs are each patient (and control) on their own, baseline Vs T, baseline Vs C, baseline Vs TC. Baseline Vs ACGT.
+interest.set = c("Baseline", "dT", "dC", "dCdT", "dAdCdGdT")
+sub.interest = sub[sub$Condition %in% interest.set,]
+ggplot(sub.interest, aes(x=Run, y=log(mtDNA.area), fill=Condition)) + geom_boxplot() + facet_wrap(~ Patcont)
+
+res.df = data.frame()
+patcont.set = unique(sub.interest$Patcont)
+for(this.patcont in patcont.set) {
+  for(i in 2:length(interest.set)) {
+    this.interest = interest.set[i]
+    sub.test = sub.interest[sub.interest$Patcont == this.patcont & (sub.interest$Condition == "Baseline" | sub.interest$Condition == this.interest),]
+    if(length(unique(sub.test$Condition)) > 1) {
+      if(length(unique(sub.test$Run)) > 1) {
+        this.lmer = lmer(log(mtDNA.area) ~ Condition + (Condition | Run), data=sub.test)
+        this.fit = summary(this.lmer)
+        res.df = rbind(res.df, data.frame(patcont=this.patcont, condition=this.interest, mean=this.fit$coefficients[2,1], sd=this.fit$coefficients[2,2]))
+      } else {
+        this.lm = lm(log(mtDNA.area) ~ Condition, data=sub.test)
+        this.fit = summary(this.lm)
+        res.df = rbind(res.df, data.frame(patcont=this.patcont, condition=this.interest, mean=this.fit$coefficients[2,1], sd=this.fit$coefficients[2,2]))
+      }
+    }
+  }
+}
+
+# compute p-values based on normal distribution of estimator
+res.df$p = pnorm(0, mean=abs(res.df$mean), sd=res.df$sd)*2
+
+ggplot(sub.interest[sub.interest$Patcont=="TWNK",], aes(x=Run, y=log(mtDNA.area), fill=Condition)) + geom_boxplot() + facet_wrap(~ Patcont)
+ggplot(sub.test, aes(x=Run, y=mtDNA.area, fill=Condition)) + geom_boxplot()
+
+### this isn't looking right!
+
+res.df = data.frame()
+patcont.set = unique(sub.interest$Patcont)
+for(this.patcont in patcont.set) {
+  for(i in 2:length(interest.set)) {
+    this.interest = interest.set[i]
+    sub.test = sub.interest[sub.interest$Patcont == this.patcont & (sub.interest$Condition == "Baseline" | sub.interest$Condition == this.interest),]
+    if(length(unique(sub.test$Condition)) > 1) {
+      if(length(unique(sub.test$Run)) > 1) {
+        this.lmer = lmer(log(mtDNA.area) ~ Condition + (Condition | Run), data=sub.test)
+        this.fit = summary(this.lmer)
+        res.df = rbind(res.df, data.frame(patcont=this.patcont, condition=this.interest, mean=this.fit$coefficients[2,1], sd=this.fit$coefficients[2,2]))
+      } else {
+        this.lm = lm(log(mtDNA.area) ~ Condition, data=sub.test)
+        this.fit = summary(this.lm)
+        res.df = rbind(res.df, data.frame(patcont=this.patcont, condition=this.interest, mean=this.fit$coefficients[2,1], sd=this.fit$coefficients[2,2]))
+      }
+    }
+  }
+}
