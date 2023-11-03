@@ -104,20 +104,28 @@ c(fit.0.1$tTable[2,1], fit.0.1$tTable[2,2],
 # effects of nucleoside combos on mtDNA area
 ##########
 
-# read (big) Excel file
-df = as.data.frame(read_excel("Runs470-474-476-478-484-485-488-489PGall200uM10pcFCScells_for_data_deposit.xlsx"))
-# Jo's request: The key thing we are after is comparing the effect of baseline vs nucleosides for each indidivual within runs.
-summary(df)
-
-# some manual curation and subsetting
-area.col = 29
-colnames(df)[area.col] = "mtDNA.area"
-df$Patcont[df$Patcont=="Black"] = "Control.2"
-df$Patcont[df$Patcont=="Turq"] = "Control.1"
-df$Patcont[df$Patcont=="HeSt"] = "POLG.1"
-df$Patcont[df$Patcont=="HenSto"] = "POLG.1"
-df$Patcont[df$Patcont=="SavSty"] = "POLG.2"
-sub = df[c("Run", "Patcont", "Condition", "mtDNA.area")]
+# the raw Excel file is too large to host on GitHub, so we'll use a flag to determine whether we want to read this or a reduced-size CSV
+read.from.raw = FALSE
+if(read.from.raw == TRUE) {
+  # read (big) Excel file
+  df = as.data.frame(read_excel("Runs470-474-476-478-484-485-488-489PGall200uM10pcFCScells_for_data_deposit.xlsx"))
+  # Jo's request: The key thing we are after is comparing the effect of baseline vs nucleosides for each indidivual within runs.
+  summary(df)
+  
+  # some manual curation and subsetting
+  area.col = 29
+  colnames(df)[area.col] = "mtDNA.area"
+  df$Patcont[df$Patcont=="Black"] = "Control.2"
+  df$Patcont[df$Patcont=="Turq"] = "Control.1"
+  df$Patcont[df$Patcont=="HeSt"] = "POLG.1"
+  df$Patcont[df$Patcont=="HenSto"] = "POLG.1"
+  df$Patcont[df$Patcont=="SavSty"] = "POLG.2"
+  sub = df[c("Run", "Patcont", "Condition", "mtDNA.area")]
+  
+  write.csv(sub, "reduced-data.csv")
+} else {
+  sub = read.csv("reduced-data.csv")
+}
 
 # summary plot
 ggplot(sub, aes(x=Patcont, y=mtDNA.area, fill=Condition)) + 
