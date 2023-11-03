@@ -144,3 +144,19 @@ for(i in 2:length(cond.set)) {
 
 # compute p-values based on normal distribution of estimator
 res.df$p = pnorm(0, mean=abs(res.df$mean), sd=res.df$sd)*2
+
+# for each one, try an LMM fit as above. here it seems that lmer, rather than lme, gives more consistent performance
+res.df = data.frame()
+for(i in 2:length(cond.set)) {
+  subsub = sub[sub$Condition == cond.set[1] | sub$Condition == cond.set[i],]
+  result = tryCatch({ 
+    this.lmer = lmer(log(mtDNA.area) ~ Condition + (Condition | Patcont) + (Condition | Run), data=subsub)
+    this.fit = summary(this.lmer)
+    res.df = rbind(res.df, data.frame(condition=cond.set[i], mean=this.fit$coefficients[2,1], sd=this.fit$coefficients[2,2]))
+  }, error = function(err) { 
+   # res.df = rbind(res.df, data.frame(condition=cond.set[i], mean=NA, sd=NA))
+  })
+}
+
+# compute p-values based on normal distribution of estimator
+res.df$p = pnorm(0, mean=abs(res.df$mean), sd=res.df$sd)*2
