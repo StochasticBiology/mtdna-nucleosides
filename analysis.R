@@ -12,6 +12,7 @@ base.control.row = 1
 base.polg.row = 17
 condition.col = 2
 cellnum.col = 3
+line.labels = c("", "POLG1", "TWNK", "POLG1", "POLG1", "POLG2", "TWNK", "DGUOK")
 
 # initialise dataframe for results
 new.df = data.frame()
@@ -31,6 +32,7 @@ for(this.sheet in 2:8) {
     base.polg.col = 10
   }
   
+  
   # read file and pull baseline values
   df.scat = as.data.frame(read_xlsx("Send to Iain- Scattergrams.xlsx", sheet=this.sheet))
   base.control = df.scat[base.control.row,base.control.col]
@@ -39,20 +41,20 @@ for(this.sheet in 2:8) {
   base.cellnum.polg = df.scat[base.polg.row,cellnum.col]
   
   # append baseline values to results 
-  new.df = rbind(new.df, data.frame(sheet=this.sheet,condition="baseline", line="control", area=base.control, cellnum=base.cellnum.control))
-  new.df = rbind(new.df, data.frame(sheet=this.sheet,condition="baseline", line="POLG", area=base.polg, cellnum=base.cellnum.polg))
+  new.df = rbind(new.df, data.frame(sheet=this.sheet,condition="baseline", line="control1", area=base.control, cellnum=base.cellnum.control))
+  new.df = rbind(new.df, data.frame(sheet=this.sheet,condition="baseline", line=line.labels[this.sheet], area=base.polg, cellnum=base.cellnum.polg))
   
   # identify nonzero control observations and append to results
   for(i in 1:nrow(df.scat)) {
     if(!is.na(df.scat[i,control.col])) {
-      new.df = rbind(new.df, data.frame(sheet=this.sheet,condition=df.scat[i,condition.col], line="control", area=df.scat[i,control.col], cellnum=df.scat[i,cellnum.col]))
+      new.df = rbind(new.df, data.frame(sheet=this.sheet,condition=df.scat[i,condition.col], line="control1", area=df.scat[i,control.col], cellnum=df.scat[i,cellnum.col]))
     }
   }
   
   # identify nonzero POLG observations and append to results
   for(i in 1:nrow(df.scat)) {
     if(!is.na(df.scat[i,polg.col])) {
-      new.df = rbind(new.df, data.frame(sheet=this.sheet,condition=df.scat[i,condition.col], line="POLG", area=df.scat[i,polg.col], cellnum=df.scat[i,cellnum.col]))  }
+      new.df = rbind(new.df, data.frame(sheet=this.sheet,condition=df.scat[i,condition.col], line=line.labels[this.sheet], area=df.scat[i,polg.col], cellnum=df.scat[i,cellnum.col]))  }
   }
 }
 
