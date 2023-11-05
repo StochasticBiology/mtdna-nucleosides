@@ -66,13 +66,15 @@ ggplot(new.df, aes(x=cellnum, y=area, colour=line, label=condition)) +
 
 sf = 2
 for(i in 2:8) {
-  png(paste("scatter-", i, ".png", sep=""), width=400*sf, height=300*sf, res=72*sf)
+  png(paste("scatter-", i, ".png", sep=""), width=300*sf, height=200*sf, res=72*sf)
   sub = new.df[new.df$sheet == i,]
   g.plot = ggplot(sub, aes(x=cellnum, y=area, colour=line, label=condition)) + 
-    geom_point(alpha=0.4) + geom_text_repel(size=2, alpha=0.4) +
-    geom_point(data=sub[sub$condition=="baseline",], aes(x=cellnum, y=area, colour=line, label=condition), alpha=1) + 
+    geom_point(alpha=0.8) + 
+    geom_text_repel(data=sub[sub$condition!="baseline",], size=2, alpha=0.8) +
+    geom_point(data=sub[sub$condition=="baseline",], aes(x=cellnum, y=area, colour=line, label=condition), color="black", size=2.5) + 
+    geom_point(data=sub[sub$condition=="baseline",], aes(x=cellnum, y=area, colour=line, label=condition), alpha=1, size=2) + 
     geom_text(data=sub[sub$condition=="baseline",], aes(x=cellnum, y=area, colour=line, label=condition), size=3, nudge_y = 2, alpha=1) +
-    theme_light() + theme(legend.position="none") + 
+    theme_light() + #theme(legend.position="none") + 
     xlab("Cell number") + ylab("mtDNA area")
   print(g.plot)
   dev.off()
