@@ -2,6 +2,7 @@ library(readxl)
 library(ggplot2)
 library(ggrepel)
 library(nlme)
+library(lme4)
 
 # Scatterplots of cell number vs mtDNA area
 ###########
