@@ -1,6 +1,6 @@
 # mtdna-nucleosides
 
-Analysis of data for nucleoside treatment of control and POLG cell lines.
+Analysis of data for nucleoside treatment of control and POLG cell lines, and primer sequences used in the experiments.
 
 `analysis.R` reads the various datafiles and performs hypothesis testing, LMM analysis, and visualisation.
 
